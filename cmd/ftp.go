@@ -58,5 +58,5 @@ func init() {
 	// sshCmd.Flags().StringVarP(&serverIP, "ip", "i", "", "Server IP (required)")
 	ftpCmd.Flags().StringVarP(&serverPort, "port", "p", "", "Server Port")
 	ftpCmd.Flags().IntVarP(&workers, "workers", "w", 9, "Number of rutines at the same time")
-	ftpCmd.Flags().IntVarP(&timeOut, "timeOut", "t", 5, "Number of rutines at the same time")
+	ftpCmd.Flags().IntVarP(&timeOut, "timeOut", "t", 5, "time limit")
 }

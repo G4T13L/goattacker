@@ -36,66 +36,33 @@ func work_smb(job readerChan, serverIP, serverPort string){
     session, err := smb.NewSession(options, debug)
     if err != nil {
         // log.Println("[!]", err)
-        log.Println("[!] Login failed", job.user,":", job.pass," ",job.pos)
+        log.Println("[x] Login failed", job.user,":", job.pass," ",job.pos)
 
         return
     }else{
         defer session.Close()
         // log.Println(green("[+][+] Session Connect at ",serverIP,":", serverPort," ", job.user,":", job.pass," ",job.pos))
-    //     
     }
-
+    var log_message string 
     if session.IsSigningRequired {
-        log.Println("[-] Signing is required", job.user,":", job.pass," ",job.pos)
-        if session.IsAuthenticated {
-            log.Println(green("[+][+] Session Connect at ",serverIP,":", serverPort," ", job.user,":", job.pass," ",job.pos))
-        } else {
-            log.Println(red("[-] Login failed", job.user,":", job.pass," ",job.pos))
-        }
+        log_message = fmt.Sprint("[-] Signing is required")
+        
     } else {
-        log.Println("[+] Signing is NOT required", job.user,":", job.pass," ",job.pos)
+        log_message = fmt.Sprint("[+] Signing is NOT required")
         // if session.IsAuthenticated {
         //     log.Println(green("[+][+] Session Connect at ",serverIP,":", serverPort," ", job.user,":", job.pass," ",job.pos))
         // } else {
         //     log.Println("[-] Login failed", job.user,":", job.pass," ",job.pos)
         // }
     }
-
+    if session.IsAuthenticated {
+        log.Println(log_message, green("[+][+] Session Connect at ",serverIP,":", serverPort," ", job.user,":", job.pass," ",job.pos))
+    } else {
+        log.Println(log_message, red("[-] Login failed", job.user,":", job.pass," ",job.pos))
+    }
     
 
 }
-
-
-// func fail_smb(job loginChan, serverIP, serverPort string){
-//     fmt.Println(yellow("[attemp] ", job))
-//     defer wg.Done()
-
-//     t := serverIP+ ":" + serverPort
-//     log.Println(job, serverIP, serverPort)
-//     conn, err := net.Dial("tcp", t)
-//     if err != nil {
-//         // panic(err)
-//         log.Println(1,err)
-//         return
-//     }
-//     defer conn.Close()
-//     d := &smb2.Dialer{
-//         Initiator: &smb2.NTLMInitiator{
-//             User:       job.user,
-//             Password:   job.pass,
-//         },
-//     }
-
-//     s, err := d.Dial(conn)
-//     if err != nil {
-//         log.Println(red("[X] Failed to connect to ",t," ", job.user,":", job.pass," ",job.pos))
-//         // panic(err)
-//     }else{
-//         log.Println(green("[+][+] Session Connect at ",t," ", job.user,":", job.pass," ",job.pos))
-//         defer s.Logoff()
-//     }
-
-// }
 
 func Smb_attack_start(userFile, passFile, serverIP, serverPort string, n_workers int){
     if n_workers == 0{

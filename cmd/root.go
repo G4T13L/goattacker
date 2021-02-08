@@ -17,10 +17,9 @@ var rootCmd = &cobra.Command{
 	protocols worked:
 	[x] ssh
 	[x] ftp
-	[ ] smb
-	[ ] smtp
-	[ ] http
-	[ ] https
+	[x] smb
+	[x] smtp
+	[ ] http y https
 	`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
@@ -36,19 +35,19 @@ func Execute() {
 	}
 }
 
-func init() {
-	// cobra.OnInitialize(initConfig)
+// func init() {
+// 	cobra.OnInitialize(initConfig)
 
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
+// 	Here you will define your flags and configuration settings.
+// 	Cobra supports persistent flags, which, if defined here,
+// 	will be global for your application.
 
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.goattacker.yaml)")
+// 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.goattacker.yaml)")
 
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	// rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-}
+// 	Cobra also supports local flags, which will only run
+// 	when this action is called directly.
+// 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+// }
 
 // initConfig reads in config file and ENV variables if set.
 // func initConfig() {
