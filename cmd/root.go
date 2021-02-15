@@ -2,13 +2,15 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
 	"os"
 
-	// homedir "github.com/mitchellh/go-homedir"
-	// "github.com/spf13/viper"
+	"github.com/spf13/cobra"
 )
 
+var (
+	userfile, passfile, serverIP, serverPort string
+	workers                                  int
+)
 
 var rootCmd = &cobra.Command{
 	Use:   "goattacker",

@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+
 	"github.com/G4T13L/goattacker/attacks"
 	"github.com/spf13/cobra"
 )
@@ -17,15 +18,15 @@ var smbCmd = &cobra.Command{
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		serverIP = args[0]
-		if (userfile == "" || passfile == ""){
+		if userfile == "" || passfile == "" {
 			fmt.Println("Incorrect number of arguments in userfile or passfile")
 			os.Exit(1)
 		}
-		if(serverPort == ""){
+		if serverPort == "" {
 			serverPort = "445"
 		}
 		fmt.Println("smb called", userfile, passfile, serverIP, serverPort)
-		attacks.Smb_attack_start(userfile, passfile, serverIP, serverPort, workers)
+		attacks.SMBattackStart(userfile, passfile, serverIP, serverPort, workers)
 	},
 }
 

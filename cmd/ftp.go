@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+
 	"github.com/G4T13L/goattacker/attacks"
 	"github.com/spf13/cobra"
 )
@@ -20,23 +21,23 @@ var ftpCmd = &cobra.Command{
 	Long: `Attacks by ftp protocol, default port is 21
 
 	serverIP: the IP of the machine to attack`,
-	Args: cobra.ExactArgs(1), 
+	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		serverIP = args[0]
-		if (userfile == "" || passfile == ""){
+		if userfile == "" || passfile == "" {
 			// panic ("Incorrect number of arguments in userfile or passfile")
 			fmt.Println("Incorrect number of arguments in userfile or passfile")
 			os.Exit(1)
 
 		}
-		if(serverPort == ""){
+		if serverPort == "" {
 			serverPort = "21"
 		}
-		if(timeOut == 0){
+		if timeOut == 0 {
 			timeOut = 5
 		}
 		fmt.Println("Ftp called: ", userfile, passfile, serverIP, serverPort, timeOut)
-		attacks.Ftp_attack_start(userfile, passfile, serverIP, serverPort, workers, timeOut)
+		attacks.FTPattackStart(userfile, passfile, serverIP, serverPort, workers, timeOut)
 	},
 }
 
