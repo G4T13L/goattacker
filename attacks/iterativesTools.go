@@ -2,6 +2,7 @@ package attacks
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"strconv"
 	"sync"
@@ -81,6 +82,7 @@ func ConstWithFile(argument, file string, posArg int, loginChan chan login) {
 	freader := bufio.NewScanner(f1)
 	for i := 0; freader.Scan(); i++ {
 		if posArg == 0 {
+			fmt.Println(freader.Text())
 			loginChan <- login{user: argument, pass: freader.Text(), pos: strconv.Itoa(i)}
 		} else if posArg == 1 {
 			loginChan <- login{user: freader.Text(), pass: argument, pos: strconv.Itoa(i)}

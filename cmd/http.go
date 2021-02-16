@@ -33,9 +33,25 @@ serverIP: the IP of the machine to attack`,
 		if mode == "auth" {
 			attacks.AuthAttack(urlSite, postData, userfile, passfile, proxyURL, workers)
 		} else if mode == "fileSearch" {
-
+			if wordsFile == "" {
+				fmt.Println("Specify words File to iterate")
+				os.Exit(1)
+			}
+			if wordReplace == "" {
+				fmt.Println("Specify a word to replace in url")
+				os.Exit(1)
+			}
+			attacks.FileAttack(urlSite, postData, wordReplace, wordsFile, extFile, proxyURL, workers)
 		} else if mode == "formLogin" {
-
+			if postData == "" {
+				fmt.Println("Specify the post data for the form")
+				os.Exit(1)
+			}
+			if wordReplace == "" {
+				fmt.Println("Specify a word or phrase to search if the response is incorrect")
+				os.Exit(1)
+			}
+			attacks.FormAttack(urlSite, postData, userfile, passfile, wordReplace, proxyURL, workers)
 		} else {
 			fmt.Println("Bad mode operation")
 			os.Exit(1)

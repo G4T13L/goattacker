@@ -99,29 +99,26 @@ func (r *RequestData) Send(method, url, post string) (string, int, *http.Respons
 }
 
 //SendAuth Send Auth request
-func SendAuth(url, post, username, password, proxy string) (string, int, *http.Response) {
+func SendAuth(url, post, username, password, proxy string) (string, int) { //, *http.Response) {
 	r := NewRequestData()
 	if proxy != "" {
 		r.SetProxy(proxy)
 	}
 	r.User = username
 	r.Pass = password
-	html, code, resp := r.GetOrPost(url, post)
-	// fmt.Println(html, code, resp)
-	return html, code, resp
-	// fmt.Printf("%v",r.Client.Transport)
+	html, code, _ := r.GetOrPost(url, post)
+	return html, code
 }
 
 //FileTry Send a request to verify a file if it exist
-func FileTry(url, word, fileWord, ext, post, proxy string) (string, int) {
+func FileTry(url, word, fileWord, ext, post, proxy string) (string, int, string) {
 	r := NewRequestData()
 	if proxy != "" {
 		r.SetProxy(proxy)
 	}
 	url = strings.Replace(url, word, fileWord+ext, 1)
 	html, code, _ := r.GetOrPost(url, post)
-	fmt.Println(html, code, url)
-	return html, code
+	return html, code, url
 }
 
 //FormLogin Send a request of a form to log in
@@ -130,7 +127,6 @@ func FormLogin(url, post, phrase, proxy string) (string, int, bool) {
 	if proxy != "" {
 		r.SetProxy(proxy)
 	}
-	// html, code, resp := r.GetOrPost(url, post)
 	html, code, _ := r.GetOrPost(url, post)
-	return "_", code, strings.Contains(html, phrase)
+	return html, code, strings.Contains(html, phrase)
 }

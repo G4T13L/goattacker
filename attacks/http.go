@@ -3,6 +3,7 @@ package attacks
 import (
 	"fmt"
 	"log"
+	"strings"
 )
 
 //workAuth goroutine to send an Auth attack
@@ -10,11 +11,12 @@ func workAuth(job login, url, post, proxy string) {
 	// fmt.Println(yellow("[attemp] ", job.pos, " ", job.user, ":", job.pass))
 	defer wg.Done()
 
-	html, code, _ := SendAuth(url, post, job.user, job.pass, proxy)
+	html, code := SendAuth(url, post, job.user, job.pass, proxy)
 	if code == 200 {
-		fmt.Println(green("\t", code, "\t", len(html), "\t", url, "\t", job.user, "\t", job.pass))
+		log.Println(green("\t ", code, " \t", len(html), "\t", url, "\t ", job.user, ":", job.pass))
+		// log.Println(green("\t ", code, " \t", len(html), "\t\t", len(strings.Split(html, " ")), " \t ", url))
 	} else {
-		fmt.Println(red("\t", code, "\t", len(html), "\t", url, "\t", job.user, "\t", job.pass))
+		log.Println(red("\t| ", code, " |\t", len(html), "\t| ", url, "\t| ", job.user, ":", job.pass))
 	}
 }
 
@@ -33,7 +35,7 @@ func AuthAttack(url, post, userFile, passFile, proxy string, nWorkers int) {
 	for i := 0; i < nWorkers; i++ {
 		sem <- 1
 	}
-	fmt.Println("\tCODE\tlen(html)\tURL\tUSER\tPASS")
+	fmt.Println(yellow("\t\tLOG\tCODE len(html)\t\tURL\t\t\tUSER:PASS"))
 	for {
 		select {
 		case job, ok := <-outchan:
@@ -53,34 +55,45 @@ func AuthAttack(url, post, userFile, passFile, proxy string, nWorkers int) {
 }
 
 //workFile goroutine to send an file search attack
-func workFile(job login, url, post, proxy string) {
-	// fmt.Println(yellow("[attemp] ", job.pos, " ", job.user, ":", job.pass))
+func workFile(job login, url, word, post, proxy string) {
 	defer wg.Done()
 
-	html, code, _ := SendAuth(url, post, job.user, job.pass, proxy)
+	// fmt.Println(yellow("[attemp] ", job.pos, " ", job.user, ":", job.pass))
+	file := job.user
+	ext := job.pass
+	html, code, url := FileTry(url, word, file, ext, post, proxy)
 	if code == 200 {
-		fmt.Println(green("\t", code, "\t", len(html), "\t", url, "\t", job.user, "\t", job.pass))
+		log.Println(green("\t ", code, " \t", len(html), "\t\t", len(strings.Split(html, " ")), " \t ", url))
+	} else if code == 404 {
+		log.Println(red("\t ", code, " \t", len(html), "\t\t", len(strings.Split(html, " ")), " \t ", url))
 	} else {
-		fmt.Println(red("\t", code, "\t", len(html), "\t", url, "\t", job.user, "\t", job.pass))
+		log.Println(magenta("\t ", code, " \t", len(html), "\t\t", len(strings.Split(html, " ")), " \t ", url))
 	}
 }
 
-//FileAttack Auth attack for http or https
-func FileAttack(url, post, userFile, passFile, proxy string, nWorkers int) {
+//FileAttack File attack for http or https
+func FileAttack(url, post, word, file, ext, proxy string, nWorkers int) {
 	if nWorkers == 0 {
 		nWorkers = 9
 	}
 
 	log.Println("[0] Starting jobs")
-	log.Println(userFile, passFile, url, post, proxy, nWorkers)
+	log.Println(url, post, word, file, ext, proxy, nWorkers)
 
 	outchan := make(chan login, nWorkers)
-	go Read2Files(userFile, passFile, outchan)
+
+	// go Read2Files(userFile, passFile, outchan)
+	if ext == "" {
+		go ConstWithFile("", file, 1, outchan)
+	} else {
+		go Read2Files(file, ext, outchan)
+	}
+
 	var sem = make(chan int, nWorkers)
 	for i := 0; i < nWorkers; i++ {
 		sem <- 1
 	}
-	fmt.Println("\tCODE\tlen(html)\tURL\tUSER\tPASS")
+	fmt.Println(yellow("\t\tLOG\tCODE\tlen(html)\tw\t\tURL"))
 	for {
 		select {
 		case job, ok := <-outchan:
@@ -92,7 +105,61 @@ func FileAttack(url, post, userFile, passFile, proxy string, nWorkers int) {
 			wg.Add(1)
 			<-sem
 			go func(job login) {
-				workAuth(job, url, post, proxy)
+				workFile(job, url, word, post, proxy)
+				sem <- 1
+			}(job)
+		}
+	}
+}
+
+//workLogin goroutine to send an form Login attack
+func workLogin(job login, url, word, post, proxy string) {
+	// fmt.Println(yellow("[attemp] ", job.pos, " ", job.user, ":", job.pass))
+	defer wg.Done()
+
+	post = strings.Replace(post, "$$USER$$", job.user, 1)
+	post = strings.Replace(post, "$$PASS$$", job.pass, 1)
+
+	html, code, tf := FormLogin(url, post, word, proxy)
+	if tf == true {
+		log.Println(green("\t ", code, " \t", len(html), "\t\t", url, "\t ", post))
+		// log.Println(green("\t ", code, " \t", len(html), "\t\t", len(strings.Split(html, " ")), " \t ", url))
+	} else {
+		log.Println(red("\t ", code, " \t", len(html), "\t\t", url, "\t ", post))
+		// log.Println(red("\t| ", code, " |\t", len(html), "\t| ", url, "\t| ", job.user, ":", job.pass))
+	}
+}
+
+//FormAttack Form login attack for http or https
+func FormAttack(url, post, userFile, passFile, word, proxy string, nWorkers int) {
+	if nWorkers == 0 {
+		nWorkers = 9
+	}
+
+	log.Println("[0] Starting jobs")
+	log.Println(url, post, userFile, passFile, word, proxy, nWorkers)
+
+	outchan := make(chan login, nWorkers)
+
+	go Read2Files(userFile, passFile, outchan)
+
+	var sem = make(chan int, nWorkers)
+	for i := 0; i < nWorkers; i++ {
+		sem <- 1
+	}
+	fmt.Println(yellow("\t\tLOG\tCODE\tlen(html)\t\tURL\t\t\tPOST DATA"))
+	for {
+		select {
+		case job, ok := <-outchan:
+			if !ok {
+				wg.Wait()
+				fmt.Println(yellow("[info] jobs finisished"))
+				return
+			}
+			wg.Add(1)
+			<-sem
+			go func(job login) {
+				workLogin(job, url, word, post, proxy)
 				sem <- 1
 			}(job)
 		}

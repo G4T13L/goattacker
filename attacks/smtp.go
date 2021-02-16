@@ -20,8 +20,6 @@ func workSMTP(job login, serverIP, serverPort string) {
 	err := smtp.SendMail(hostname+":25", auth, from, recipients, msg)
 	if err != nil {
 		log.Println("[!]", err, red("[-] Login failed", job.user, ":", job.pass, " ", job.pos))
-
-		return
 	} else {
 		log.Println(green("[+][+] Session Connect at ", serverIP, ":", serverPort, " ", job.user, ":", job.pass, " ", job.pos))
 	}
