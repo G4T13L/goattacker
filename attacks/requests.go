@@ -69,9 +69,9 @@ func (r *RequestData) SetProxy(urlPort string) {
 func (r *RequestData) GetOrPost(urlsite string, post string, redirect bool) (string, int, *http.Response) {
 	if post == "" {
 		return r.Send("GET", urlsite, "", redirect)
-	} else {
-		return r.Send("POST", urlsite, post, redirect)
 	}
+	return r.Send("POST", urlsite, post, redirect)
+
 }
 
 //Send Send the data
@@ -122,14 +122,14 @@ func (r *RequestData) Send(method, urlsite, post string, redirect bool) (string,
 	// fmt.Println(magenta(resp.Header))
 	if (code != 302 && code != 301) || !redirect {
 		return string(html), code, resp
-	} else {
-		ret := resp.Header.Get("Location")
-		if strings.HasPrefix(ret, "http://") || strings.HasPrefix(ret, "https://") {
-			return r.Send("GET", ret, "", false)
-		}
-		fmt.Println(extractDomain(urlsite) + resp.Header.Get("Location"))
-		return r.Send("GET", extractDomain(urlsite)+ret, "", false)
 	}
+	ret := resp.Header.Get("Location")
+	if strings.HasPrefix(ret, "http://") || strings.HasPrefix(ret, "https://") {
+		return r.Send("GET", ret, "", false)
+	}
+	fmt.Println(extractDomain(urlsite) + resp.Header.Get("Location"))
+	return r.Send("GET", extractDomain(urlsite)+ret, "", false)
+
 }
 
 func extractDomain(url string) string {

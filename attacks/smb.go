@@ -41,10 +41,11 @@ func workSMB(job login, serverIP, serverPort string) {
 		log.Println(red("[x] Login failed ", job.user, ":", job.pass, " ", job.pos))
 
 		return
-	} else {
-		defer session.Close()
-		// log.Println(green("[+][+] Session Connect at ",serverIP,":", serverPort," ", job.user,":", job.pass," ",job.pos))
 	}
+	// else
+	defer session.Close()
+	// log.Println(green("[+][+] Session Connect at ",serverIP,":", serverPort," ", job.user,":", job.pass," ",job.pos))
+
 	var logMessage string
 	if session.IsSigningRequired {
 		logMessage = fmt.Sprint("[-] Signing is required")
