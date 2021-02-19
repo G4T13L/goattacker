@@ -8,4 +8,5 @@ require (
 	github.com/spf13/cobra v1.1.1
 	github.com/stacktitan/smb v0.0.0-20190531122847-da9a425dceb8
 	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
+	golang.org/x/net v0.0.0-20190620200207-3b0461eec859
 )

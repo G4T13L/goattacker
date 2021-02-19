@@ -7,21 +7,21 @@ import (
 )
 
 //workAuth goroutine to send an Auth attack
-func workAuth(job login, url, post, proxy string) {
+func workAuth(job login, url, post, proxy string, redirect bool) {
 	// fmt.Println(yellow("[attemp] ", job.pos, " ", job.user, ":", job.pass))
 	defer wg.Done()
 
-	html, code := SendAuth(url, post, job.user, job.pass, proxy)
+	html, code := SendAuth(url, post, job.user, job.pass, proxy, redirect)
 	if code == 200 {
 		log.Println(green("\t ", code, " \t", len(html), "\t", url, "\t ", job.user, ":", job.pass))
 		// log.Println(green("\t ", code, " \t", len(html), "\t\t", len(strings.Split(html, " ")), " \t ", url))
 	} else {
-		log.Println(red("\t| ", code, " |\t", len(html), "\t| ", url, "\t| ", job.user, ":", job.pass))
+		log.Println(red("\t ", code, " \t", len(html), "\t", url, "\t ", job.user, ":", job.pass))
 	}
 }
 
 //AuthAttack Auth attack for http or https
-func AuthAttack(url, post, userFile, passFile, proxy string, nWorkers int) {
+func AuthAttack(url, post, userFile, passFile, proxy string, nWorkers int, redirect bool) {
 	if nWorkers == 0 {
 		nWorkers = 9
 	}
@@ -47,7 +47,7 @@ func AuthAttack(url, post, userFile, passFile, proxy string, nWorkers int) {
 			wg.Add(1)
 			<-sem
 			go func(job login) {
-				workAuth(job, url, post, proxy)
+				workAuth(job, url, post, proxy, redirect)
 				sem <- 1
 			}(job)
 		}
@@ -55,13 +55,13 @@ func AuthAttack(url, post, userFile, passFile, proxy string, nWorkers int) {
 }
 
 //workFile goroutine to send an file search attack
-func workFile(job login, url, word, post, proxy string) {
+func workFile(job login, url, word, post, proxy string, redirect bool) {
 	defer wg.Done()
 
 	// fmt.Println(yellow("[attemp] ", job.pos, " ", job.user, ":", job.pass))
 	file := job.user
 	ext := job.pass
-	html, code, url := FileTry(url, word, file, ext, post, proxy)
+	html, code, url := FileTry(url, word, file, ext, post, proxy, redirect)
 	if code == 200 {
 		log.Println(green("\t ", code, " \t", len(html), "\t\t", len(strings.Split(html, " ")), " \t ", url))
 	} else if code == 404 {
@@ -72,7 +72,7 @@ func workFile(job login, url, word, post, proxy string) {
 }
 
 //FileAttack File attack for http or https
-func FileAttack(url, post, word, file, ext, proxy string, nWorkers int) {
+func FileAttack(url, post, word, file, ext, proxy string, nWorkers int, redirect bool) {
 	if nWorkers == 0 {
 		nWorkers = 9
 	}
@@ -105,7 +105,7 @@ func FileAttack(url, post, word, file, ext, proxy string, nWorkers int) {
 			wg.Add(1)
 			<-sem
 			go func(job login) {
-				workFile(job, url, word, post, proxy)
+				workFile(job, url, word, post, proxy, redirect)
 				sem <- 1
 			}(job)
 		}
@@ -113,14 +113,14 @@ func FileAttack(url, post, word, file, ext, proxy string, nWorkers int) {
 }
 
 //workLogin goroutine to send an form Login attack
-func workLogin(job login, url, word, post, proxy string) {
+func workLogin(job login, url, word, post, proxy string, redirect bool) {
 	// fmt.Println(yellow("[attemp] ", job.pos, " ", job.user, ":", job.pass))
 	defer wg.Done()
 
 	post = strings.Replace(post, "$$USER$$", job.user, 1)
 	post = strings.Replace(post, "$$PASS$$", job.pass, 1)
 
-	html, code, tf := FormLogin(url, post, word, proxy)
+	html, code, tf := FormLogin(url, post, word, proxy, redirect)
 	if tf == true {
 		log.Println(green("\t ", code, " \t", len(html), "\t\t", url, "\t ", post))
 		// log.Println(green("\t ", code, " \t", len(html), "\t\t", len(strings.Split(html, " ")), " \t ", url))
@@ -131,7 +131,7 @@ func workLogin(job login, url, word, post, proxy string) {
 }
 
 //FormAttack Form login attack for http or https
-func FormAttack(url, post, userFile, passFile, word, proxy string, nWorkers int) {
+func FormAttack(url, post, userFile, passFile, word, proxy string, nWorkers int, redirect bool) {
 	if nWorkers == 0 {
 		nWorkers = 9
 	}
@@ -159,7 +159,7 @@ func FormAttack(url, post, userFile, passFile, word, proxy string, nWorkers int)
 			wg.Add(1)
 			<-sem
 			go func(job login) {
-				workLogin(job, url, word, post, proxy)
+				workLogin(job, url, word, post, proxy, redirect)
 				sem <- 1
 			}(job)
 		}

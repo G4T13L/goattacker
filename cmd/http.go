@@ -10,7 +10,7 @@ import (
 
 // httpCmd represents the http command
 var httpCmd = &cobra.Command{
-	Use:   "http mode",
+	Use:   "http mode url",
 	Short: "Attacks by http/https protocol",
 	Long: `
 Attacks by http/https protocol
@@ -31,7 +31,7 @@ serverIP: the IP of the machine to attack`,
 
 		fmt.Println("http/https called: ", urlSite, mode)
 		if mode == "auth" {
-			attacks.AuthAttack(urlSite, postData, userfile, passfile, proxyURL, workers)
+			attacks.AuthAttack(urlSite, postData, userfile, passfile, proxyURL, workers, false)
 		} else if mode == "fileSearch" {
 			if wordsFile == "" {
 				fmt.Println("Specify words File to iterate")
@@ -41,7 +41,7 @@ serverIP: the IP of the machine to attack`,
 				fmt.Println("Specify a word to replace in url")
 				os.Exit(1)
 			}
-			attacks.FileAttack(urlSite, postData, wordReplace, wordsFile, extFile, proxyURL, workers)
+			attacks.FileAttack(urlSite, postData, wordReplace, wordsFile, extFile, proxyURL, workers, redir)
 		} else if mode == "formLogin" {
 			if postData == "" {
 				fmt.Println("Specify the post data for the form")
@@ -51,7 +51,7 @@ serverIP: the IP of the machine to attack`,
 				fmt.Println("Specify a word or phrase to search if the response is incorrect")
 				os.Exit(1)
 			}
-			attacks.FormAttack(urlSite, postData, userfile, passfile, wordReplace, proxyURL, workers)
+			attacks.FormAttack(urlSite, postData, userfile, passfile, wordReplace, proxyURL, workers, true)
 		} else {
 			fmt.Println("Bad mode operation")
 			os.Exit(1)
@@ -67,7 +67,7 @@ var (
 	wordReplace string
 	wordsFile   string
 	extFile     string
-	wordPhrase  string
+	redir       bool
 )
 
 func init() {
@@ -83,7 +83,7 @@ func init() {
 	// [-] fileSearch
 	// [-] formLogin
 	httpCmd.Flags().StringVarP(&proxyURL, "proxy", "p", "", "Proxy url: \"proxyUrl:port\"")
-	httpCmd.Flags().StringVarP(&postData, "post", "", "", "Post data")
+	httpCmd.Flags().StringVarP(&postData, "post", "", "", "Post data\n[formLogin]")
 	httpCmd.Flags().StringVarP(&wordReplace, "word", "w", "", "[fileSearch] word to replace in url\n[formLogin] phrase to search to correct validation")
 	httpCmd.Flags().StringVarP(&wordsFile, "File", "f", "", "[fileSearch] File of words to iterate")
 	httpCmd.Flags().StringVarP(&extFile, "ext", "e", "", "[fileSearch] File of extensions wanted to iterate")
@@ -91,4 +91,5 @@ func init() {
 	httpCmd.Flags().StringVarP(&userfile, "userfile", "U", "", "User file")
 	httpCmd.Flags().StringVarP(&passfile, "passfile", "L", "", "Pass file")
 	httpCmd.Flags().IntVarP(&workers, "nWorkers", "n", 9, "Number of rutines at the same time")
+	httpCmd.Flags().BoolVar(&redir, "redirect", false, "Redirect if code of response is 302 or 301")
 }

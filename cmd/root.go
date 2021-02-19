@@ -21,7 +21,7 @@ var rootCmd = &cobra.Command{
 	[x] ftp
 	[x] smb
 	[x] smtp
-	[ ] http y https
+	[x] http y https
 	`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:

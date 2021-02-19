@@ -13,8 +13,11 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/http/cookiejar"
 	"net/url"
 	"strings"
+
+	"golang.org/x/net/publicsuffix"
 )
 
 //RequestData Basic data for requests
@@ -36,7 +39,15 @@ func NewRequestData() *RequestData {
 				InsecureSkipVerify: true,
 			},
 		},
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
 	}
+	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
+	if err != nil {
+		log.Fatal(err)
+	}
+	r.Client.Jar = jar
 	return r
 }
 
@@ -55,17 +66,33 @@ func (r *RequestData) SetProxy(urlPort string) {
 }
 
 //GetOrPost request for get or post method
-func (r *RequestData) GetOrPost(url string, post string) (string, int, *http.Response) {
+func (r *RequestData) GetOrPost(urlsite string, post string, redirect bool) (string, int, *http.Response) {
 	if post == "" {
-		return r.Send("GET", url, "")
+		return r.Send("GET", urlsite, "", redirect)
 	} else {
-		return r.Send("POST", url, post)
+		return r.Send("POST", urlsite, post, redirect)
 	}
 }
 
 //Send Send the data
-func (r *RequestData) Send(method, url, post string) (string, int, *http.Response) {
-	req, err := http.NewRequest(method, url, strings.NewReader(post))
+func (r *RequestData) Send(method, urlsite, post string, redirect bool) (string, int, *http.Response) {
+	var req *http.Request
+	var err error
+	data := url.Values{}
+	if method == "GET" {
+		req, err = http.NewRequest(method, urlsite, nil)
+	} else {
+		// sep := strings.Split(post, "&")
+		for _, v := range strings.Split(post, "&") {
+			w := strings.Split(v, "=")
+			data.Set(w[0], w[1])
+		}
+		req, err = http.NewRequest("POST", urlsite, strings.NewReader(data.Encode()))
+
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value")
+		req.Header.Set("User-Agent", r.UserAgent)
+		req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
+	}
 
 	if err != nil {
 		fmt.Println("[!] Didn't get a response from the server")
@@ -75,9 +102,6 @@ func (r *RequestData) Send(method, url, post string) (string, int, *http.Respons
 	if r.User != "" {
 		req.SetBasicAuth(r.User, r.Pass)
 	}
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value")
-	req.Header.Set("User-Agent", r.UserAgent)
-	req.Header.Set("Accept-Encoding", "*")
 
 	resp, err := r.Client.Do(req)
 	if err != nil || resp == nil {
@@ -95,38 +119,55 @@ func (r *RequestData) Send(method, url, post string) (string, int, *http.Respons
 	}
 	resp.Body.Close()
 
-	return string(html), code, resp
+	// fmt.Println(magenta(resp.Header))
+	if (code != 302 && code != 301) || !redirect {
+		return string(html), code, resp
+	} else {
+		ret := resp.Header.Get("Location")
+		if strings.HasPrefix(ret, "http://") || strings.HasPrefix(ret, "https://") {
+			return r.Send("GET", ret, "", false)
+		}
+		fmt.Println(extractDomain(urlsite) + resp.Header.Get("Location"))
+		return r.Send("GET", extractDomain(urlsite)+ret, "", false)
+	}
+}
+
+func extractDomain(url string) string {
+	dn := strings.Split(url, "/")
+	return dn[0] + "//" + dn[2]
+}
+
+//FileTry Send a request to verify a file if it exist
+func FileTry(urlsite, word, fileWord, ext, post, proxy string, redirect bool) (string, int, string) {
+	r := NewRequestData()
+	if proxy != "" {
+		r.SetProxy(proxy)
+	}
+	urlsite = strings.Replace(urlsite, word, fileWord+ext, 1)
+	html, code, _ := r.GetOrPost(urlsite, post, redirect)
+	return html, code, urlsite
 }
 
 //SendAuth Send Auth request
-func SendAuth(url, post, username, password, proxy string) (string, int) { //, *http.Response) {
+func SendAuth(urlsite, post, username, password, proxy string, redirect bool) (string, int) { //, *http.Response) {
 	r := NewRequestData()
 	if proxy != "" {
 		r.SetProxy(proxy)
 	}
 	r.User = username
 	r.Pass = password
-	html, code, _ := r.GetOrPost(url, post)
+	html, code, _ := r.GetOrPost(urlsite, post, redirect)
 	return html, code
 }
 
-//FileTry Send a request to verify a file if it exist
-func FileTry(url, word, fileWord, ext, post, proxy string) (string, int, string) {
-	r := NewRequestData()
-	if proxy != "" {
-		r.SetProxy(proxy)
-	}
-	url = strings.Replace(url, word, fileWord+ext, 1)
-	html, code, _ := r.GetOrPost(url, post)
-	return html, code, url
-}
-
 //FormLogin Send a request of a form to log in
-func FormLogin(url, post, phrase, proxy string) (string, int, bool) {
+func FormLogin(urlsite, post, phrase, proxy string, redirect bool) (string, int, bool) {
 	r := NewRequestData()
 	if proxy != "" {
 		r.SetProxy(proxy)
 	}
-	html, code, _ := r.GetOrPost(url, post)
-	return html, code, strings.Contains(html, phrase)
+	// fmt.Println(urlsite, post, phrase, proxy)
+	html, code, _ := r.GetOrPost(urlsite, post, redirect)
+	// fmt.Println(html)
+	return html, code, !strings.Contains(html, phrase)
 }
