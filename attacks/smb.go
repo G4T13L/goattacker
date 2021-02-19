@@ -86,7 +86,7 @@ func SMBattackStart(userFile, passFile, serverIP, serverPort string, nWorkers in
 		case job, ok := <-outchan:
 			if !ok {
 				wg.Wait()
-				fmt.Println(yellow("[info] jobs finisished"))
+				log.Println(yellow("[info] jobs finisished"))
 				return
 			}
 			wg.Add(1)

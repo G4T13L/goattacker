@@ -45,7 +45,7 @@ func SMTPattackStart(userFile, passFile, serverIP, serverPort string, nWorkers i
 		case job, ok := <-rchan:
 			if !ok {
 				wg.Wait()
-				fmt.Println(yellow("[info] jobs finisished"))
+				log.Println(yellow("[info] jobs finisished"))
 				return
 			}
 			wg.Add(1)

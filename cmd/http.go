@@ -13,13 +13,7 @@ var httpCmd = &cobra.Command{
 	Use:   "http mode url",
 	Short: "Attacks by http/https protocol",
 	Long: `
-Attacks by http/https protocol
-	3 modes to use
-	[-] auth
-	[-] fileSearch
-	[-] formLogin
-
-serverIP: the IP of the machine to attack`,
+Attacks by http/https protocol`,
 	Args: cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 		mode := args[0]
@@ -92,4 +86,15 @@ func init() {
 	httpCmd.Flags().StringVarP(&passfile, "passfile", "L", "", "Pass file")
 	httpCmd.Flags().IntVarP(&workers, "nWorkers", "n", 9, "Number of rutines at the same time")
 	httpCmd.Flags().BoolVar(&redir, "redirect", false, "Redirect if code of response is 302 or 301")
+
+	usage := httpCmd.UsageString()
+	// fIndex := strings.Index(usage, "\nFlags:")
+	httpCmd.SetUsageTemplate(usage + `
+Modes:
+    [*] auth
+    [*] fileSearch
+    [*] formLogin
+`)
+	// httpCmd.SetHelpTemplate(httpCmd.HelpTemplate())
+
 }

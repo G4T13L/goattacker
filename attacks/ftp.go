@@ -70,7 +70,7 @@ func FTPattackStart(userFile, passFile, serverIP, serverPort string, nWorkers, n
 		case job, ok := <-outchan:
 			if !ok {
 				wg.Wait()
-				fmt.Println(yellow("[info] jobs finisished"))
+				log.Println(yellow("[info] jobs finisished"))
 				return
 			}
 			wg.Add(1)

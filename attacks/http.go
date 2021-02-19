@@ -41,7 +41,7 @@ func AuthAttack(url, post, userFile, passFile, proxy string, nWorkers int, redir
 		case job, ok := <-outchan:
 			if !ok {
 				wg.Wait()
-				fmt.Println(yellow("[info] jobs finisished"))
+				log.Println(yellow("[info] jobs finisished"))
 				return
 			}
 			wg.Add(1)
@@ -99,7 +99,7 @@ func FileAttack(url, post, word, file, ext, proxy string, nWorkers int, redirect
 		case job, ok := <-outchan:
 			if !ok {
 				wg.Wait()
-				fmt.Println(yellow("[info] jobs finisished"))
+				log.Println(yellow("[info] jobs finisished"))
 				return
 			}
 			wg.Add(1)
@@ -153,7 +153,7 @@ func FormAttack(url, post, userFile, passFile, word, proxy string, nWorkers int,
 		case job, ok := <-outchan:
 			if !ok {
 				wg.Wait()
-				fmt.Println(yellow("[info] jobs finisished"))
+				log.Println(yellow("[info] jobs finisished"))
 				return
 			}
 			wg.Add(1)

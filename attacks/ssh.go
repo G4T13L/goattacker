@@ -60,7 +60,7 @@ func SSHattackStart(userFile, passFile string, serverIP, serverPort string, nWor
 		case job, ok := <-outchan:
 			if !ok {
 				wg.Wait()
-				fmt.Println(yellow("[info] jobs finisished"))
+				log.Println(yellow("[info] jobs finisished"))
 				return
 			}
 			wg.Add(1)
