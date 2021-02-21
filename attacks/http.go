@@ -113,7 +113,7 @@ func FileAttack(url, post, word, file, ext, proxy string, nWorkers int, redirect
 }
 
 //workLogin goroutine to send an form Login attack
-func workLogin(job login, url, word, post, proxy string, redirect bool) {
+func workLogin(job login, url, word, post, proxy string, redirect, show bool) {
 	// fmt.Println(yellow("[attemp] ", job.pos, " ", job.user, ":", job.pass))
 	defer wg.Done()
 
@@ -121,17 +121,20 @@ func workLogin(job login, url, word, post, proxy string, redirect bool) {
 	post = strings.Replace(post, "$$PASS$$", job.pass, 1)
 
 	html, code, tf := FormLogin(url, post, word, proxy, redirect)
+	if show {
+		fmt.Println(html)
+	}
 	if tf == true {
-		log.Println(green("\t ", code, " \t", len(html), "\t\t", url, "\t ", post))
+		log.Println(green("\t ", code, " \t", len(html), "\t [OK]", "\t", url, "\t ", post))
 		// log.Println(green("\t ", code, " \t", len(html), "\t\t", len(strings.Split(html, " ")), " \t ", url))
 	} else {
-		log.Println(red("\t ", code, " \t", len(html), "\t\t", url, "\t ", post))
+		log.Println(red("\t ", code, " \t", len(html), "\t [x]", "\t", url, "\t ", post))
 		// log.Println(red("\t| ", code, " |\t", len(html), "\t| ", url, "\t| ", job.user, ":", job.pass))
 	}
 }
 
 //FormAttack Form login attack for http or https
-func FormAttack(url, post, userFile, passFile, word, proxy string, nWorkers int, redirect bool) {
+func FormAttack(url, post, userFile, passFile, word, proxy string, nWorkers int, redirect, show bool) {
 	if nWorkers == 0 {
 		nWorkers = 9
 	}
@@ -147,7 +150,7 @@ func FormAttack(url, post, userFile, passFile, word, proxy string, nWorkers int,
 	for i := 0; i < nWorkers; i++ {
 		sem <- 1
 	}
-	fmt.Println(yellow("\t\tLOG\tCODE\tlen(html)\t\tURL\t\t\tPOST DATA"))
+	fmt.Println(yellow("\t\tLOG\tCODE\tlen\tinfo\tURL\t\t\t\tPOST DATA"))
 	for {
 		select {
 		case job, ok := <-outchan:
@@ -159,7 +162,7 @@ func FormAttack(url, post, userFile, passFile, word, proxy string, nWorkers int,
 			wg.Add(1)
 			<-sem
 			go func(job login) {
-				workLogin(job, url, word, post, proxy, redirect)
+				workLogin(job, url, word, post, proxy, redirect, show)
 				sem <- 1
 			}(job)
 		}

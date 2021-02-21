@@ -45,7 +45,7 @@ Attacks by http/https protocol`,
 				fmt.Println("Specify a word or phrase to search if the response is incorrect")
 				os.Exit(1)
 			}
-			attacks.FormAttack(urlSite, postData, userfile, passfile, wordReplace, proxyURL, workers, true)
+			attacks.FormAttack(urlSite, postData, userfile, passfile, wordReplace, proxyURL, workers, true, showhtml)
 		} else {
 			fmt.Println("Bad mode operation")
 			os.Exit(1)
@@ -62,6 +62,7 @@ var (
 	wordsFile   string
 	extFile     string
 	redir       bool
+	showhtml    bool
 )
 
 func init() {
@@ -86,6 +87,7 @@ func init() {
 	httpCmd.Flags().StringVarP(&passfile, "passfile", "L", "", "Pass file")
 	httpCmd.Flags().IntVarP(&workers, "nWorkers", "n", 9, "Number of rutines at the same time")
 	httpCmd.Flags().BoolVar(&redir, "redirect", false, "Redirect if code of response is 302 or 301")
+	httpCmd.Flags().BoolVar(&showhtml, "show", false, "show html response")
 
 	usage := httpCmd.UsageString()
 	// fIndex := strings.Index(usage, "\nFlags:")

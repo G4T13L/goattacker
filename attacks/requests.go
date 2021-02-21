@@ -83,6 +83,9 @@ func (r *RequestData) Send(method, urlsite, post string, redirect bool) (string,
 		req, err = http.NewRequest(method, urlsite, nil)
 	} else {
 		// sep := strings.Split(post, "&")
+		if post == "" {
+			panic("there is no post data")
+		}
 		for _, v := range strings.Split(post, "&") {
 			w := strings.Split(v, "=")
 			data.Set(w[0], w[1])
@@ -102,12 +105,12 @@ func (r *RequestData) Send(method, urlsite, post string, redirect bool) (string,
 	if r.User != "" {
 		req.SetBasicAuth(r.User, r.Pass)
 	}
-
 	resp, err := r.Client.Do(req)
 	if err != nil || resp == nil {
 		return "", 0, nil
 	}
 
+	defer resp.Body.Close()
 	code := resp.StatusCode
 	if resp.Body == nil {
 		return "", code, resp
@@ -117,18 +120,22 @@ func (r *RequestData) Send(method, urlsite, post string, redirect bool) (string,
 	if err != nil {
 		return "", code, resp
 	}
-	resp.Body.Close()
 
-	// fmt.Println(magenta(resp.Header))
-	if (code != 302 && code != 301) || !redirect {
-		return string(html), code, resp
+	// fmt.Println(code, urlsite, redirect)
+
+	if redirect && (code == 302 || code == 301) {
+		ret := resp.Header.Get("Location")
+		if strings.HasPrefix(ret, "http://") || strings.HasPrefix(ret, "https://") {
+			return r.Send("GET", ret, "", false)
+		}
+		//else
+		if strings.HasPrefix(ret, "/") {
+			return r.Send("GET", extractDomain(urlsite)+ret, "", false)
+
+		}
+		return r.Send("GET", extractDomain(urlsite)+"/"+ret, "", false)
 	}
-	ret := resp.Header.Get("Location")
-	if strings.HasPrefix(ret, "http://") || strings.HasPrefix(ret, "https://") {
-		return r.Send("GET", ret, "", false)
-	}
-	fmt.Println(extractDomain(urlsite) + resp.Header.Get("Location"))
-	return r.Send("GET", extractDomain(urlsite)+ret, "", false)
+	return string(html), code, resp
 
 }
 
