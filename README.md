@@ -1,13 +1,13 @@
 # goattacker
-A tool to brute force different protocols
+
 Una herramienta para fuerza bruta
 
-## how to get goattacker
+## Como obtener goattacker
 ```bash
 go get github.com/G4T13L/goattacker
 ```
 
-## how to install
+## como instalar
 ```bash
 cd ~/go/src/github.com/G4T13L/goattacker
 go install goattacker.go
