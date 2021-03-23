@@ -1,8 +1,8 @@
-# goattacker
+# Goattacker
 
 Una herramienta para fuerza bruta
 
-## Como obtener goattacker
+## Como obtener Goattacker
 ```bash
 go get github.com/G4T13L/goattacker
 ```
